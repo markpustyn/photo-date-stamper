@@ -1,0 +1,114 @@
+export type DateFormat = "classic" | "iso" | "written" | "datetime";
+export type Position =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+export type StampSettings = {
+  format: DateFormat;
+  size: number;
+  color: string;
+  position: Position;
+  treatment: "shadow" | "background" | "none";
+};
+export const defaultSettings: StampSettings = {
+  format: "classic",
+  size: 4,
+  color: "#ffffff",
+  position: "bottom-right",
+  treatment: "shadow",
+};
+
+// Capture dates are camera-local wall-clock values, never converted to UTC.
+export function parseCaptureDate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const match =
+    /^(\d{4})[:-](\d{2})[:-](\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(value);
+  if (!match) return null;
+  const [, y, m, d, h, min, s] = match;
+  const result = `${y}-${m}-${d}T${h}:${min}:${s}`;
+  return validDate(result) ? result : null;
+}
+export function validDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) return false;
+  const [y, m, d, h, min, s = 0] = value.split(/[-T:]/).map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return (
+    y >= 100 &&
+    date.getUTCFullYear() === y &&
+    date.getUTCMonth() === m - 1 &&
+    date.getUTCDate() === d &&
+    h < 24 &&
+    min < 60 &&
+    s < 60
+  );
+}
+export function formatTimestamp(value: string, format: DateFormat): string {
+  if (!validDate(value))
+    throw new Error("Enter a valid date and time to add your stamp.");
+  const [date, time] = value.split("T");
+  const [year, month, day] = date.split("-");
+  if (format === "iso") return date;
+  if (format === "datetime")
+    return `${month}.${day}.${year}  ${time.slice(0, 5)}`;
+  if (format === "written")
+    return `${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][Number(month) - 1]} ${day}, ${year}`;
+  return `${month}.${day}.${year}`;
+}
+export function drawStamp(
+  canvas: HTMLCanvasElement,
+  image: CanvasImageSource,
+  width: number,
+  height: number,
+  timestamp: string | null,
+  settings: StampSettings,
+  maxDimension?: number,
+) {
+  const scale = maxDimension
+    ? Math.min(1, maxDimension / Math.max(width, height))
+    : 1;
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Your browser could not create the image canvas.");
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  if (!timestamp) return;
+  const text = formatTimestamp(timestamp, settings.format);
+  const short = Math.min(canvas.width, canvas.height);
+  let fontSize = (short * settings.size) / 100;
+  ctx.font = `500 ${fontSize}px monospace`;
+  const margin = short * 0.045;
+  fontSize *= Math.min(
+    1,
+    (canvas.width - 2 * margin) / ctx.measureText(text).width,
+  );
+  ctx.font = `500 ${fontSize}px monospace`;
+  const textWidth = ctx.measureText(text).width;
+  const x = settings.position.endsWith("left")
+    ? margin
+    : settings.position.endsWith("center")
+      ? (canvas.width - textWidth) / 2
+      : canvas.width - margin - textWidth;
+  const y = settings.position.startsWith("top")
+    ? margin
+    : canvas.height - margin - fontSize;
+  ctx.textBaseline = "top";
+  if (settings.treatment === "background") {
+    ctx.fillStyle = "rgba(16, 25, 22, 0.65)";
+    ctx.fillRect(
+      x - fontSize * 0.3,
+      y - fontSize * 0.25,
+      textWidth + fontSize * 0.6,
+      fontSize * 1.55,
+    );
+  }
+  if (settings.treatment === "shadow") {
+    ctx.shadowColor = "rgba(0,0,0,.85)";
+    ctx.shadowBlur = fontSize * 0.18;
+    ctx.shadowOffsetY = fontSize * 0.07;
+  }
+  ctx.fillStyle = settings.color;
+  ctx.fillText(text, x, y);
+}
