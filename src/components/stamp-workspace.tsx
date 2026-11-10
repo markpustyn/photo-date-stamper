@@ -103,6 +103,8 @@ export function StampWorkspace() {
   const customTimestamp = validManualDate ? manualDate : null;
   const timestamp =
     source === "exif" ? (photo?.captureDate ?? null) : customTimestamp;
+  const dateInput = source === "exif" ? (photo?.captureDate ?? "") : manualDate;
+  const dateOnly = dateInput.length === 10;
 
   const controlsDisabled = busy || exporting;
   const canDownload = Boolean(
@@ -301,38 +303,28 @@ export function StampWorkspace() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
-      <section className="pb-8 pt-10 sm:pt-14 text-center">
-        <p className="text-xs font-semibold tracking-widest text-primary ">
-          IMAGE TOOLS / DATE STAMP
-        </p>
+    <section className="pb-8 pt-10 text-center sm:pt-14">
+      <p className="text-xs font-semibold tracking-widest text-primary">
+        IMAGE TOOLS / DATE STAMP
+      </p>
 
-        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-          Image date stamper
-        </h1>
+      <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+        Image Date Stamper
+      </h1>
 
-        <p className="mt-3 max-w-2xl text-slate-600 text-center mx-auto">
-          Add a capture date or custom timestamp to your photos, then export
-          each image at its original resolution.
-        </p>
-      </section>
-
+      <p className="mx-auto mt-3 max-w-3xl text-center text-slate-600">
+       All images are processed securely in your
+        browser, never uploaded, stored, or sent to our servers
+        <br />
+        100% private
+      </p>
+    </section>
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* Photo picker and preview */}
         <section
           aria-label="Photo workspace"
           className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
         >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-4">
-            <h3 className="font-semibold">
-              {photo ? "Image preview" : "Source images"}
-            </h3>
-
-            <span className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600">
-              {files.length === 0
-                ? "NO IMAGES SELECTED"
-                : `${activeIndex + 1} / ${files.length}`}
-            </span>
-          </div>
 
           <input
             ref={inputRef}
@@ -346,31 +338,36 @@ export function StampWorkspace() {
             onChange={handleFileChange}
           />
 
-          {files.length > 0 && (
-            <div className="px-4 pt-4">
-              <label
-                htmlFor="selected-photo"
-                className="mb-2 block text-sm font-semibold"
-              >
-                Selected photo
-              </label>
+            {files.length > 0 && (
+              <div className="px-4 pt-4 pb-2">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="selected-photo"
+                    className="block text-sm font-semibold"
+                  >
+                    Selected photo
+                  </label>
 
-              <select
-                id="selected-photo"
-                value={activeIndex}
-                disabled={controlsDisabled}
-                onChange={handlePhotoChange}
-                className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-              >
-                {files.map((file, index) => (
-                  <option key={index} value={index}>
-                    {index + 1} of {files.length} · {file.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+                  <span className="px-2 py-1 font-mono text-xs text-slate-600">
+                    {activeIndex + 1} / {files.length}
+                  </span>
+                </div>
 
+                <select
+                  id="selected-photo"
+                  value={activeIndex}
+                  disabled={controlsDisabled}
+                  onChange={handlePhotoChange}
+                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                >
+                  {files.map((file, index) => (
+                    <option key={index} value={index}>
+                      {index + 1} of {files.length} · {file.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           <div
             data-dragging={dragging}
             data-loaded={Boolean(photo)}
@@ -520,26 +517,15 @@ export function StampWorkspace() {
         >
           {opened && (
             <div className="space-y-5 p-5">
-              <fieldset>
-                <legend className="mb-2 text-sm font-semibold">
-                  Timestamp source
-                </legend>
-
               {photo && !photo.captureDate && (
-                <p className="mt-2 flex items-start gap-2 text-xs leading-5 text-amber-800">
+                <p className="flex items-start gap-2 text-xs leading-5 text-amber-800">
                   <Info size={14} className="mt-0.5 shrink-0" />
                   {photo.metadataWarning
                     ? "We couldn’t read the EXIF data. Use a custom date for this photo."
                     : "No EXIF capture date found. Use a custom date for this photo."}
                 </p>
               )}
-                <p className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-600">
-                  <Info size={14} className="mt-0.5 shrink-0" />
-                  {photo?.captureDate
-                    ? `Captured ${formatTimestamp(photo.captureDate, "datetime")} (camera time)`
-                    : "Uses the capture date saved by your camera."}
-                </p>
-                <div className="mt-3">
+                <div className="">
                   <label
                     htmlFor="custom-date"
                     className="mb-2 block text-sm font-semibold"
@@ -549,25 +535,25 @@ export function StampWorkspace() {
 
                   <input
                     id="custom-date"
-                    type="datetime-local"
-                    min="0100-01-01T00:00"
-                    max="9999-12-31T23:59"
-                    value={manualDate}
-                    aria-invalid={!validManualDate}
+                    type={dateOnly ? "date" : "datetime-local"}
+                    min={dateOnly ? "0100-01-01" : "0100-01-01T00:00"}
+                    max={dateOnly ? "9999-12-31" : "9999-12-31T23:59"}
+                    value={dateInput}
+                    aria-invalid={!validDate(dateInput)}
                     onChange={(event) => {
                       setManualDate(event.currentTarget.value);
+                      setSource("manual");
                       setNotice("");
                     }}
-                    className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm aria-[invalid=true]:border-red-500"
+                    className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm "
                   />
 
-                  {!validManualDate && (
+                  {!validDate(dateInput) || files.length < 1 && (
                     <p className="mt-2 text-xs text-amber-800">
                       Enter a valid date and time.
                     </p>
                   )}
                 </div>
-            </fieldset>
 
             <div className="border-t border-slate-200" />
 

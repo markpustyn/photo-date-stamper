@@ -31,7 +31,9 @@ export async function loadPhoto(file: File): Promise<LoadedPhoto> {
     let metadataWarning = false;
     try {
       captureDate = await readCaptureDate(file);
-    } catch {
+      metadataWarning = captureDate === null;
+    } catch (error) {
+      console.error("Failed to read metadata:", error);
       metadataWarning = true;
     }
     return {

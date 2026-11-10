@@ -1,25 +1,20 @@
-import exifParser from "exif-parser";
+import * as ExifReader from "exifreader";
 import { parseCaptureDate } from "./stamp";
 
 export async function readCaptureDate(file: File): Promise<string | null> {
-  let tags;
-  if (file.type === "image/jpeg") {
-    const bytes = await file.arrayBuffer();
-    tags = exifParser
-      .create(bytes, globalThis)
-      .enableImageSize(false)
-      .enableSimpleValues(false)
-      .parse().tags;
-  } else {
-    // exif-parser expects JPEG segments. PNG and WebP use different containers.
-    const { default: exifr } = await import("exifr");
-    tags = await exifr.parse(file, {
-      pick: ["DateTimeOriginal", "CreateDate"],
-      reviveValues: false,
-    });
-  }
-  return (
-    parseCaptureDate(tags?.DateTimeOriginal) ??
-    parseCaptureDate(tags?.CreateDate)
-  );
+  const tags = await ExifReader.load(file, {
+    excludeTags: {
+      exif: ["MakerNote", 0x9286],
+    },
+  });
+
+  console.log("EXIF Metadata:", tags);
+
+  const rawDate =
+    tags["GPSDateStamp"]?.description ??
+    null;
+
+  console.log("Raw capture date:", rawDate);
+
+  return parseCaptureDate(rawDate);
 }

@@ -21,9 +21,17 @@ export const defaultSettings: StampSettings = {
   treatment: "shadow",
 };
 
+const DATE_RE =
+  /^(\d{4})([-:])(\d{2})\2(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/;
+
 // Capture dates are camera-local wall-clock values, never converted to UTC.
 export function parseCaptureDate(value: unknown): string | null {
   if (typeof value !== "string") return null;
+  const dateOnly = /^(\d{4})[:-](\d{2})[:-](\d{2})$/.exec(value.trim());
+  if (dateOnly) {
+    const result = `${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}`;
+    return validDate(result) ? result : null;
+  }
   const match =
     /^(\d{4})[:-](\d{2})[:-](\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(value);
   if (!match) return null;
@@ -32,8 +40,16 @@ export function parseCaptureDate(value: unknown): string | null {
   return validDate(result) ? result : null;
 }
 export function validDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) return false;
-  const [y, m, d, h, min, s = 0] = value.split(/[-T:]/).map(Number);
+  const match = DATE_RE.exec(value.trim());
+  if (!match) return false;
+
+  const y = Number(match[1]);
+  const m = Number(match[3]);
+  const d = Number(match[4]);
+  const h = Number(match[5] ?? 0);
+  const min = Number(match[6] ?? 0);
+  const s = Number(match[7] ?? 0);
+
   const date = new Date(Date.UTC(y, m - 1, d));
   return (
     y >= 100 &&
@@ -48,11 +64,13 @@ export function validDate(value: string): boolean {
 export function formatTimestamp(value: string, format: DateFormat): string {
   if (!validDate(value))
     throw new Error("Enter a valid date and time to add your stamp.");
-  const [date, time] = value.split("T");
+  const match = DATE_RE.exec(value.trim())!;
+  const date = `${match[1]}-${match[3]}-${match[4]}`;
+  const time = match[5] ? `${match[5]}:${match[6]}` : null;
   const [year, month, day] = date.split("-");
   if (format === "iso") return date;
   if (format === "datetime")
-    return `${month}.${day}.${year}  ${time.slice(0, 5)}`;
+    return `${month}.${day}.${year}${time ? `  ${time}` : ""}`;
   if (format === "written")
     return `${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][Number(month) - 1]} ${day}, ${year}`;
   return `${month}.${day}.${year}`;
