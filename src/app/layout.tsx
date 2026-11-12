@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: "Free Photo Date Stamper",
@@ -12,7 +13,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="font-sans">
       <body>
-        {children}</body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

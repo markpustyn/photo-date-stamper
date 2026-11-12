@@ -1,4 +1,5 @@
-import { readCaptureDate } from "./capture-date";
+import { readPhotoMetadata } from "./capture-date";
+import type { Coordinates } from "./location";
 import { drawStamp, type StampSettings } from "./stamp";
 export type LoadedPhoto = {
   image: HTMLImageElement;
@@ -7,6 +8,7 @@ export type LoadedPhoto = {
   width: number;
   height: number;
   captureDate: string | null;
+  coordinates: Coordinates | null;
   metadataWarning: boolean;
 };
 export async function loadPhoto(file: File): Promise<LoadedPhoto> {
@@ -28,9 +30,10 @@ export async function loadPhoto(file: File): Promise<LoadedPhoto> {
         "Choose an image under 40 megapixels so your browser can safely process it.",
       );
     let captureDate: string | null = null;
+    let coordinates: Coordinates | null = null;
     let metadataWarning = false;
     try {
-      captureDate = await readCaptureDate(file);
+      ({ captureDate, coordinates } = await readPhotoMetadata(file));
       metadataWarning = captureDate === null;
     } catch (error) {
       console.error("Failed to read metadata:", error);
@@ -43,6 +46,7 @@ export async function loadPhoto(file: File): Promise<LoadedPhoto> {
       width: image.naturalWidth,
       height: image.naturalHeight,
       captureDate,
+      coordinates,
       metadataWarning,
     };
   } catch (error) {
@@ -60,13 +64,15 @@ export async function exportPhoto(
   settings: StampSettings,
 ): Promise<Blob> {
   const canvas = document.createElement("canvas");
-  drawStamp(
+  await drawStamp(
     canvas,
     photo.image,
     photo.width,
     photo.height,
     timestamp,
     settings,
+    undefined,
+    photo.coordinates,
   );
   // PNG preserves transparency and avoids another lossy compression pass.
   return new Promise((resolve, reject) =>

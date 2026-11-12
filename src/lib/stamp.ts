@@ -1,3 +1,5 @@
+import { formatCoordinates, getCity, type Coordinates } from "./location";
+
 export type DateFormat = "slash" | "classic" | "iso" | "written" | "datetime";
 export type Position =
   | "top-left"
@@ -12,6 +14,7 @@ export type StampSettings = {
   color: string;
   position: Position;
   treatment: "shadow" | "background" | "none";
+  location: "none" | "coordinates" | "city" | "city-state" | "city-state-country";
 };
 export const defaultSettings: StampSettings = {
   format: "slash",
@@ -19,6 +22,7 @@ export const defaultSettings: StampSettings = {
   color: "#ffffff",
   position: "bottom-right",
   treatment: "shadow",
+  location: "none",
 };
 
 const DATE_RE =
@@ -76,7 +80,7 @@ export function formatTimestamp(value: string, format: DateFormat): string {
     return `${["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][Number(month) - 1]} ${day}, ${year}`;
   return `${month}.${day}.${year}`;
 }
-export function drawStamp(
+export async function drawStamp(
   canvas: HTMLCanvasElement,
   image: CanvasImageSource,
   width: number,
@@ -84,6 +88,7 @@ export function drawStamp(
   timestamp: string | null,
   settings: StampSettings,
   maxDimension?: number,
+  coordinates?: Coordinates | null,
 ) {
   const scale = maxDimension
     ? Math.min(1, maxDimension / Math.max(width, height))
@@ -94,17 +99,25 @@ export function drawStamp(
   if (!ctx) throw new Error("Your browser could not create the image canvas.");
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   if (!timestamp) return;
-  const text = formatTimestamp(timestamp, settings.format);
+  const lines = [formatTimestamp(timestamp, settings.format)];
+  if (settings.location === "coordinates" && coordinates) {
+    lines.push(formatCoordinates(coordinates));
+  }
+  if (coordinates && settings.location !== "none" && settings.location !== "coordinates") {
+    lines.push(await getCity(coordinates, settings.location));
+  }
   const short = Math.min(canvas.width, canvas.height);
   let fontSize = (short * settings.size) / 100;
   ctx.font = `500 ${fontSize}px monospace`;
   const margin = short * 0.045;
   fontSize *= Math.min(
     1,
-    (canvas.width - 2 * margin) / ctx.measureText(text).width,
+    (canvas.width - 2 * margin) / Math.max(...lines.map((line) => ctx.measureText(line).width)),
   );
   ctx.font = `500 ${fontSize}px monospace`;
-  const textWidth = ctx.measureText(text).width;
+  const textWidth = Math.max(...lines.map((line) => ctx.measureText(line).width));
+  const lineHeight = fontSize * 1.35;
+  const blockHeight = fontSize + (lines.length - 1) * lineHeight;
   const x = settings.position.endsWith("left")
     ? margin
     : settings.position.endsWith("center")
@@ -112,7 +125,7 @@ export function drawStamp(
       : canvas.width - margin - textWidth;
   const y = settings.position.startsWith("top")
     ? margin
-    : canvas.height - margin - fontSize;
+    : canvas.height - margin - blockHeight;
   ctx.textBaseline = "top";
   if (settings.treatment === "background") {
     ctx.fillStyle = "rgba(16, 25, 22, 0.65)";
@@ -120,7 +133,7 @@ export function drawStamp(
       x - fontSize * 0.3,
       y - fontSize * 0.25,
       textWidth + fontSize * 0.6,
-      fontSize * 1.55,
+      blockHeight + fontSize * 0.55,
     );
   }
   if (settings.treatment === "shadow") {
@@ -129,5 +142,11 @@ export function drawStamp(
     ctx.shadowOffsetY = fontSize * 0.07;
   }
   ctx.fillStyle = settings.color;
-  ctx.fillText(text, x, y);
+  lines.forEach((line, index) => {
+    const lineWidth = ctx.measureText(line).width;
+    const lineX = settings.position.endsWith("left") ? x
+      : settings.position.endsWith("center") ? x + (textWidth - lineWidth) / 2
+      : x + textWidth - lineWidth;
+    ctx.fillText(line, lineX, y + index * lineHeight);
+  });
 }

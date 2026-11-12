@@ -10,14 +10,18 @@ import {
 import {
   ArrowDownToLine,
   ArrowRight,
+  Calendar,
   CalendarDays,
   Check,
   ChevronDown,
+  CirclePlus,
   ImagePlus,
   Info,
   LoaderCircle,
   LockKeyhole,
   Pencil,
+  PencilIcon,
+  Plus,
   RotateCcw,
   Trash2,
 } from "lucide-react";
@@ -32,6 +36,7 @@ import {
 
 import { DockDemo } from "@/components/dock";
 import { exportPhoto, loadPhoto, type LoadedPhoto } from "@/lib/images";
+import { formatCoordinates } from "@/lib/location";
 import { Button } from "@/components/ui/button";
 import {
   defaultSettings,
@@ -134,23 +139,33 @@ export function StampWorkspace() {
     const canvas = canvasRef.current;
     if (!photo || !canvas) return;
 
-    try {
-      drawStamp(
-        canvas,
+    let cancelled = false;
+    const preview = document.createElement("canvas");
+    void drawStamp(
+        preview,
         photo.image,
         photo.width,
         photo.height,
         timestamp,
         settings,
         1600,
-      );
-    } catch (err) {
+        photo.coordinates,
+      ).then(() => {
+        if (cancelled) return;
+        canvas.width = preview.width;
+        canvas.height = preview.height;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("The preview could not be rendered.");
+        context.drawImage(preview, 0, 0);
+      }).catch((err: unknown) => {
+      if (cancelled) return;
       setRenderError(
         err instanceof Error
           ? err.message
           : "The preview could not be rendered.",
       );
-    }
+      });
+    return () => { cancelled = true; };
   }, [photo, timestamp, settings]);
 
   function updateSetting<K extends keyof StampSettings>(
@@ -292,7 +307,6 @@ export function StampWorkspace() {
       link.remove();
 
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
-      setNotice("Your stamped photo is ready. Download started.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -305,224 +319,13 @@ export function StampWorkspace() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
-    <section className="pb-8 pt-10 text-center sm:pt-14">
-      <p className="text-xs font-semibold tracking-widest text-primary">
-        IMAGE TOOLS / DATE STAMP
-      </p>
-
-      <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-        Image Date Stamper
-      </h1>
-      <h3 className="text-lg font-semibold text-slate-700 mt-2">100% Private</h3>
-      <p className="mx-auto mt-3 max-w-3xl text-center text-slate-600">
-       All images are processed securely in your
-        browser, never uploaded, stored, or sent to our servers
-      </p>
-    </section>
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        {/* Photo picker and preview */}
-        <section
-          aria-label="Photo workspace"
-          className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
-        >
-
-          <input
-            ref={inputRef}
-            id="photo-upload"
-            type="file"
-            multiple
-            accept="image/jpeg,image/png,image/webp"
-            aria-label="Select source images"
-            className="sr-only"
-            disabled={controlsDisabled}
-            onChange={handleFileChange}
-          />
-
-            {files.length > 0 && (
-              <div className="px-4 pt-4 pb-2">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <label
-                    htmlFor="selected-photo"
-                    className="block text-sm font-semibold"
-                  >
-                    Selected photo
-                  </label>
-
-                  <span className="px-2 py-1 font-mono text-xs text-slate-600">
-                    {activeIndex + 1} / {files.length}
-                  </span>
-                </div>
-
-                <select
-                  id="selected-photo"
-                  value={activeIndex}
-                  disabled={controlsDisabled}
-                  onChange={handlePhotoChange}
-                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-                >
-                  {files.map((file, index) => (
-                    <option key={index} value={index}>
-                      {index + 1} of {files.length} · {file.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          <div
-            data-dragging={dragging}
-            data-loaded={Boolean(photo)}
-            aria-busy={busy}
-            onDragEnter={handleDragEnter}
-            onDragOver={(event) => event.preventDefault()}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className="
-                relative m-4 grid min-h-72 place-items-center overflow-hidden
-                rounded-md border-2 border-dashed border-slate-300 p-5
-                data-[loaded=true]:border-solid data-[loaded=true]:bg-slate-100
-                data-[loaded=true]:p-2 data-[dragging=true]:border-primary
-                data-[dragging=true]:ring-2 data-[dragging=true]:ring-primary
-                sm:min-h-96
-              "
-          >
-            {photo ? (
-              <canvas
-                ref={canvasRef}
-                role="img"
-                aria-label={
-                  timestamp
-                    ? `${photo.name} stamped ${formatTimestamp(timestamp, settings.format)}`
-                    : `${photo.name} without a timestamp`
-                }
-                className="block h-auto max-h-[70vh] w-auto max-w-full object-contain"
-              />
-            ) : (
-              <>
-              <button
-                type="button"
-                aria-label="Select photos to upload"
-                disabled={controlsDisabled}
-                onClick={() => inputRef.current?.click()}
-                className="absolute inset-0 z-10 cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-wait disabled:hover:bg-transparent"
-              />
-              <Empty className="px-0"
-              >
-                <EmptyHeader>
-                  <EmptyMedia variant="icon" className="size-14 text-primary">
-                    <ImagePlus
-                      className="size-7"
-                      strokeWidth={1.5}
-                      aria-hidden="true"
-                    />
-                  </EmptyMedia>
-                  <EmptyTitle
-                    role="heading"
-                    aria-level={3}
-                    className="text-xl font-semibold"
-                  >
-                    {busy
-                      ? "Opening photo…"
-                      : files.length > 0
-                        ? "Photo unavailable"
-                        : "Select photos to begin"}
-                  </EmptyTitle>
-                  <EmptyDescription>
-                    Drag and drop photos here, or browse your device.
-                  </EmptyDescription>
-                </EmptyHeader>
-                <EmptyContent>
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
-                  >
-                    {busy ? (
-                      <LoaderCircle
-                        size={17}
-                        className="motion-safe:animate-spin"
-                      />
-                    ) : (
-                      <ImagePlus size={17} />
-                    )}
-                    Select photos
-                    <ArrowRight size={16} />
-                  </span>
-
-                  <span className="text-xs text-slate-500">
-                    JPG, PNG or WebP · Up to 50 MB / 40 MP per photo
-                  </span>
-                </EmptyContent>
-              </Empty>
-              </>
-            )}
-            {dragging && (
-              <div className="pointer-events-none absolute inset-0 grid place-items-center bg-slate-950/75 p-4 text-center font-semibold text-white">
-                Drop to add photos
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5">
-            {files.length > 0 ? (
-              <>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">
-                    {files[activeIndex]?.name}
-                  </p>
-
-                  {photo && (
-                    <p className="mt-1 text-xs text-slate-600">
-                      {photo.width.toLocaleString()} ×{" "}
-                      {photo.height.toLocaleString()} px · Original resolution
-                      export
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  title="Remove current image"
-                  aria-label="Remove current image"
-                  disabled={controlsDisabled}
-                  onClick={removePhoto}
-                  className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-50"
-                >
-                  <Trash2 size={17} />
-                </button>
-              </>
-            ) : (
-              <>
-              </>
-            )}
-          </div>
-          {files.length > 0 && (
-            <button
-              type="button"
-              disabled={controlsDisabled}
-              onClick={() => inputRef.current?.click()}
-              className="mb-4 ml-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline disabled:opacity-50"
-            >
-              <ImagePlus size={15} />
-              Add more photos
-            </button>
-          )}
-        </section>
-
-
-      {displayedError && (
-        <div
-          role="alert"
-          className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-        >
-          <Info size={18} className="shrink-0" />
-          {displayedError}
-        </div>
-      )}
-              <div
-          className="rounded-lg border border-slate-200 bg-white shadow-sm"
+    <div className="grid w-full min-h-0 min-w-0 flex-1 grid-cols-1 pb-10 xl:grid-cols-[22rem_minmax(0,1fr)_22rem] xl:grid-rows-[auto_minmax(0,1fr)_auto] xl:gap-x-8 xl:pb-0">
+      <aside
+          aria-label="Stamp settings"
+          className="order-3 mt-5 flex max-h-[calc(100dvh-2rem)] w-full min-h-0 min-w-0 max-w-5xl flex-col justify-self-center overflow-hidden border-r bg-white xl:order-none xl:col-start-1 xl:row-start-1 xl:row-span-3 xl:mt-0 xl:max-h-full xl:self-stretch xl:rounded-l-none xl:border-l-0"
         >
           {opened && (
-            <div className="space-y-5 p-5">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
               {photo && !photo.captureDate && (
                 <p className="flex items-start gap-2 text-xs leading-5 text-amber-800">
                   <Info size={14} className="mt-0.5 shrink-0" />
@@ -570,7 +373,6 @@ export function StampWorkspace() {
                     onChange={(event) => {
                       setManualDate(event.currentTarget.value);
                       setSource("manual");
-                      setNotice("");
                     }}
                     className="block min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
                   />
@@ -600,7 +402,6 @@ export function StampWorkspace() {
                   <option value="classic">MM.DD.YYYY</option>
                   <option value="iso">YYYY-MM-DD</option>
                   <option value="written">MON DD, YYYY</option>
-                  <option value="datetime">MM.DD.YYYY HH:mm</option>
                 </select>
 
                 <ChevronDown
@@ -681,6 +482,33 @@ export function StampWorkspace() {
               </div>
             </fieldset>
 
+            <fieldset disabled={controlsDisabled} className="border-t border-slate-200 pt-5">
+              <legend className="text-sm font-semibold">Location</legend>
+              <label htmlFor="stamp-location" className="sr-only">Location on stamp</label>
+              <select
+                id="stamp-location"
+                value={settings.location}
+                onChange={(event) => updateSetting("location", event.currentTarget.value as StampSettings["location"])}
+                className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm disabled:opacity-50"
+              >
+                <option value="none">No location</option>
+                <option value="coordinates">Coordinates</option>
+                <option value="city">City</option>
+                <option value="city-state">City + State</option>
+                <option value="city-state-country">City + State + Country</option>
+              </select>
+              <p className="mt-3 break-words text-xs leading-5 text-slate-600">
+                {!photo ? "Select a photo to read its saved GPS coordinates."
+                  : photo.coordinates ? `Saved coordinates: ${formatCoordinates(photo.coordinates)}`
+                  : "No readable GPS coordinates found in this photo. Location will be omitted from the stamp."}
+              </p>
+              {settings.location !== "none" && settings.location !== "coordinates" && (
+                <p className="mt-2 text-xs leading-5 text-slate-600">
+                  Place names are looked up through our server using Google. Only the saved coordinates are sent; your photo stays on your device.
+                </p>
+              )}
+            </fieldset>
+
             <fieldset>
               <legend className="mb-2 text-sm font-semibold">Position</legend>
 
@@ -711,22 +539,7 @@ export function StampWorkspace() {
 
           </div>
           )}
-            <div className="space-y-3 p-5">
-              <Button
-                type="button"
-                size="lg"
-                disabled={!canDownload}
-                onClick={() => void downloadPhoto()}
-                className="w-full justify-center gap-2"
-              >
-                {exporting ? (
-                  <LoaderCircle size={18} className="motion-safe:animate-spin" />
-                ) : (
-                  <ArrowDownToLine size={18} />
-                )}
-                {files.length > 1 ? `Download ${files.length} Photos` : "Download Stamped Photo"}
-              </Button>
-
+            <div className="mt-auto shrink-0 space-y-3 border-t border-slate-100 bg-white p-5">
               <div className="grid auto-cols-fr grid-flow-col gap-3">
                 <Button
                   type="button"
@@ -734,7 +547,6 @@ export function StampWorkspace() {
                   size="lg"
                   onClick={() => {
                     setSettings(defaultSettings);
-                    setNotice("");
                   }}
                   className="w-full px-3"
                 >
@@ -754,18 +566,232 @@ export function StampWorkspace() {
                 )}
               </div>
             </div>
-        </div>
-      </div>
+        </aside>
+    <section className="order-1 min-w-0 px-4 pb-6 pt-8 text-center sm:pt-10 xl:order-none xl:col-start-2 xl:row-start-1">
+      <p className="text-xs font-semibold tracking-widest text-primary">
+        IMAGE TOOLS / DATE STAMP
+      </p>
 
-      <div role="status" aria-live="polite">
-        {notice && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-primary">
-            <Check size={18} className="shrink-0" />
-            {notice}
+      <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+        Image Date Stamper
+      </h1>
+      <h3 className="text-lg font-semibold text-slate-700 mt-2">100% Private</h3>
+      <p className="mx-auto mt-3 max-w-3xl text-center text-slate-600">
+       All images are processed securely in your
+        browser, never uploaded, stored, or sent to our servers
+      </p>
+    </section>
+      <div className="order-2 grid min-h-0 min-w-0 content-start gap-4 px-4 sm:px-8 xl:order-none xl:col-start-2 xl:row-start-2 xl:overflow-y-auto xl:overscroll-contain xl:px-0 xl:pb-5">
+        {/* Photo picker and preview */}
+        <section
+          aria-label="Photo workspace"
+          className="w-full min-w-0 max-w-3xl justify-self-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+        >
+
+          <input
+            ref={inputRef}
+            id="photo-upload"
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="Select source images"
+            className="sr-only"
+            disabled={controlsDisabled}
+            onChange={handleFileChange}
+          />
+
+            {files.length > 0 && (
+              <div className="px-4 pt-4 pb-2">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="selected-photo"
+                    className="block text-sm font-semibold"
+                  >
+                    Selected photo
+                  </label>
+
+                  <span className="px-2 py-1 font-mono text-xs text-slate-600">
+                    {activeIndex + 1} / {files.length}
+                  </span>
+                </div>
+
+                <select
+                  id="selected-photo"
+                  value={activeIndex}
+                  disabled={controlsDisabled}
+                  onChange={handlePhotoChange}
+                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                >
+                  {files.map((file, index) => (
+                    <option key={index} value={index}>
+                      {index + 1} of {files.length} · {file.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          <div
+            data-dragging={dragging}
+            data-loaded={Boolean(photo)}
+            aria-busy={busy}
+            onDragEnter={handleDragEnter}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className="
+                relative m-3 grid min-h-80 place-items-center overflow-hidden
+                rounded-md border-2 border-dashed border-slate-300 p-5
+                data-[loaded=true]:border-solid data-[loaded=true]:bg-slate-100
+                data-[loaded=true]:min-h-0 data-[loaded=true]:p-2 data-[dragging=true]:border-primary
+                data-[dragging=true]:ring-2 data-[dragging=true]:ring-primary
+                sm:min-h-80
+              "
+          >
+            {photo ? (
+              <canvas
+                ref={canvasRef}
+                role="img"
+                aria-label={
+                  timestamp
+                    ? `${photo.name} stamped ${formatTimestamp(timestamp, settings.format)}${settings.location === "coordinates" && photo.coordinates ? `, ${formatCoordinates(photo.coordinates)}` : ""}`
+                    : `${photo.name} without a timestamp`
+                }
+                className="block h-auto max-h-[min(50dvh,28rem)] w-auto max-w-full object-contain"
+              />
+            ) : (
+              <>
+              <button
+                type="button"
+                aria-label="Select photos to upload"
+                disabled={controlsDisabled}
+                onClick={() => inputRef.current?.click()}
+                className="absolute inset-0 z-10 cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-wait disabled:hover:bg-transparent"
+              />
+              <Empty className="px-0"
+              >
+                <EmptyHeader>
+                  <EmptyMedia variant="icon" className="size-14 text-primary">
+                    <ImagePlus
+                      className="size-7"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                  </EmptyMedia>
+                  <EmptyTitle
+                    role="heading"
+                    aria-level={3}
+                    className="text-xl font-semibold"
+                  >
+                    {busy
+                      ? "Opening photo…"
+                      : files.length > 0
+                        ? "Photo unavailable"
+                        : "Select photos to begin"}
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    Drag and drop photos here, or browse your device.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
+                  >
+                    {busy ? (
+                      <LoaderCircle
+                        size={17}
+                        className="motion-safe:animate-spin"
+                      />
+                    ) : (
+                      <ImagePlus size={17} />
+                    )}
+                    Select photos
+                    <ArrowRight size={16} />
+                  </span>
+
+                  <span className="text-xs text-slate-500">
+                    JPG, PNG or WebP · Up to 50 MB / 40 MP per photo
+                  </span>
+                </EmptyContent>
+              </Empty>
+              </>
+            )}
+            {dragging && (
+              <div className="pointer-events-none absolute inset-0 grid place-items-center bg-slate-950/75 p-4 text-center font-semibold text-white">
+                Drop to add photos
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </section>
+    <div className="relative pb-5" role="group" aria-label="Photo actions">
+      <Dock direction="middle" iconSize={44} iconMagnification={52} className="mt-0 h-16 max-w-full gap-2 rounded-xl bg-white px-2 shadow-sm">
+        <DockIcon className="p-0! [&>div]:size-full">
+          <button
+            type="button"
+            title="Add more photos"
+            disabled={controlsDisabled}
+            onClick={() => inputRef.current?.click()}
+            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+          >
+            <CirclePlus aria-hidden="true" className="size-5" />
+          </button>
+        </DockIcon>
+        <DockIcon className="p-0! [&>div]:size-full">
+          <button
+            type="button"
+            title="Edit date and time"
+            aria-label="Edit date and time"
+            disabled={controlsDisabled}
+            onClick={() => {
+              setOpened(true);
+              requestAnimationFrame(() => document.getElementById("custom-date")?.focus());
+            }}
+            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+          >
+            <Calendar aria-hidden="true" className="size-5" />
+          </button>
+        </DockIcon>
+        <DockIcon className="p-0! [&>div]:size-full">
+          <button
+              type="button"
+              title="Remove current image"
+              aria-label="Remove current image"
+              disabled={controlsDisabled}
+              onClick={removePhoto}
+            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+          >
+            <Trash2 aria-hidden="true" className="size-5" />
+          </button>
+        </DockIcon>
+        <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-slate-200" />
+              <Button
+                type="button"
+                size="lg"
+                disabled={!canDownload}
+                onClick={() => void downloadPhoto()}
+                className="h-11 justify-center gap-2 rounded-lg px-4"
+              >
+                {exporting ? (
+                  <LoaderCircle size={18} className="motion-safe:animate-spin" />
+                ) : (
+                  <ArrowDownToLine size={18} />
+                )}
+                {exporting ? "Preparing…" : "Download photo"}
+              </Button>
+      </Dock>
+    </div>
 
+      {displayedError && (
+        <div
+          role="alert"
+          className="flex w-full max-w-5xl items-center gap-2 justify-self-center rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          <Info size={18} className="shrink-0" />
+          {displayedError}
+        </div>
+      )}
+      
+      </div>
     </div>
   );
 }

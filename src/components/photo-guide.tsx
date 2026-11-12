@@ -14,18 +14,6 @@ const useCases = [
     "Add a date to the copies you include in a report. Keep the original files too: an editable stamp cannot verify when a photo was taken.",
   ],
   [
-    "In the family album",
-    "Put the date on birthday photos and holiday prints, so relatives can see when they were taken without asking.",
-  ],
-  [
-    "When sorting old photos",
-    "Keep a known date visible on scanned prints or exported copies, even if the filename changes. You can enter the date yourself.",
-  ],
-  [
-    "On a dating profile",
-    "Include the date of a recent photo if you want to give it some context. It’s a label, rather than proof of how recent the picture is.",
-  ],
-  [
     "For a film-camera look",
     "Try a small orange stamp in the bottom-right corner. It’s a familiar detail from older point-and-shoot cameras.",
   ],

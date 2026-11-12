@@ -24,7 +24,7 @@ function Header() {
 
           <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-primary">
             <LockKeyhole size={14} />
-            Local processing
+            100% Secure
           </span>
         </div>
       </header>
