@@ -17,8 +17,8 @@ import {
   Info,
   LoaderCircle,
   LockKeyhole,
+  Pencil,
   RotateCcw,
-  ShieldCheck,
   Trash2,
 } from "lucide-react";
 import {
@@ -30,6 +30,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
+import { DockDemo } from "@/components/dock";
 import { exportPhoto, loadPhoto, type LoadedPhoto } from "@/lib/images";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,8 @@ import {
   type Position,
   type StampSettings,
 } from "@/lib/stamp";
+import Link from "next/link";
+import { Dock, DockIcon } from "./ui/dock";
 
 const positions: Position[] = [
   "top-left",
@@ -302,7 +305,7 @@ export function StampWorkspace() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
     <section className="pb-8 pt-10 text-center sm:pt-14">
       <p className="text-xs font-semibold tracking-widest text-primary">
         IMAGE TOOLS / DATE STAMP
@@ -311,12 +314,10 @@ export function StampWorkspace() {
       <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
         Image Date Stamper
       </h1>
-
+      <h3 className="text-lg font-semibold text-slate-700 mt-2">100% Private</h3>
       <p className="mx-auto mt-3 max-w-3xl text-center text-slate-600">
        All images are processed securely in your
         browser, never uploaded, stored, or sent to our servers
-        <br />
-        100% private
       </p>
     </section>
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -397,7 +398,16 @@ export function StampWorkspace() {
                 className="block h-auto max-h-[70vh] w-auto max-w-full object-contain"
               />
             ) : (
-              <Empty className="px-0">
+              <>
+              <button
+                type="button"
+                aria-label="Select photos to upload"
+                disabled={controlsDisabled}
+                onClick={() => inputRef.current?.click()}
+                className="absolute inset-0 z-10 cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-wait disabled:hover:bg-transparent"
+              />
+              <Empty className="px-0"
+              >
                 <EmptyHeader>
                   <EmptyMedia variant="icon" className="size-14 text-primary">
                     <ImagePlus
@@ -422,12 +432,9 @@ export function StampWorkspace() {
                   </EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent>
-                  <Button
-                    type="button"
-                    disabled={controlsDisabled}
-                    onClick={() => inputRef.current?.click()}
-                    size="lg"
-                    className="px-5"
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground"
                   >
                     {busy ? (
                       <LoaderCircle
@@ -439,15 +446,15 @@ export function StampWorkspace() {
                     )}
                     Select photos
                     <ArrowRight size={16} />
-                  </Button>
+                  </span>
 
                   <span className="text-xs text-slate-500">
                     JPG, PNG or WebP · Up to 50 MB / 40 MP per photo
                   </span>
                 </EmptyContent>
               </Empty>
+              </>
             )}
-
             {dragging && (
               <div className="pointer-events-none absolute inset-0 grid place-items-center bg-slate-950/75 p-4 text-center font-semibold text-white">
                 Drop to add photos
@@ -455,7 +462,7 @@ export function StampWorkspace() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5">
             {files.length > 0 ? (
               <>
                 <div className="min-w-0 flex-1">
@@ -485,18 +492,9 @@ export function StampWorkspace() {
               </>
             ) : (
               <>
-                <span className="inline-flex items-center gap-2 text-xs text-slate-600">
-                  <LockKeyhole size={14} />
-                  Processed on your device
-                </span>
-
-                <span className="text-xs text-slate-600">
-                  Original files preserved
-                </span>
               </>
             )}
           </div>
-
           {files.length > 0 && (
             <button
               type="button"
@@ -510,10 +508,18 @@ export function StampWorkspace() {
           )}
         </section>
 
-        {/* Stamp settings */}
-        <aside
-          aria-labelledby="settings-title"
-          className="min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+
+      {displayedError && (
+        <div
+          role="alert"
+          className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          <Info size={18} className="shrink-0" />
+          {displayedError}
+        </div>
+      )}
+              <div
+          className="rounded-lg border border-slate-200 bg-white shadow-sm"
         >
           {opened && (
             <div className="space-y-5 p-5">
@@ -525,10 +531,31 @@ export function StampWorkspace() {
                     : "No EXIF capture date found. Use a custom date for this photo."}
                 </p>
               )}
-                <div className="">
+              
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold">
+                Text treatment
+              </legend>
+
+              <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+                {treatments.map((treatment) => (
+                  <button
+                    key={treatment.value}
+                    type="button"
+                    aria-pressed={settings.treatment === treatment.value}
+                    onClick={() => updateSetting("treatment", treatment.value)}
+                    className="rounded-md px-1 py-2 text-xs font-medium text-slate-600 hover:bg-white/60 aria-pressed:bg-white aria-pressed:text-primary aria-pressed:shadow-sm"
+                  >
+                    {treatment.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+                <div>
+                  <div className="flex items-center gap-4">
                   <label
                     htmlFor="custom-date"
-                    className="mb-2 block text-sm font-semibold"
+                    className="w-24 shrink-0 text-sm font-semibold"
                   >
                     Date and time
                   </label>
@@ -545,27 +572,19 @@ export function StampWorkspace() {
                       setSource("manual");
                       setNotice("");
                     }}
-                    className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm "
+                    className="block min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
                   />
-
-                  {!validDate(dateInput) || files.length < 1 && (
-                    <p className="mt-2 text-xs text-amber-800">
-                      Enter a valid date and time.
-                    </p>
-                  )}
+                  </div>
                 </div>
-
-            <div className="border-t border-slate-200" />
-
-            <div>
+            <div className="flex items-center gap-4">
               <label
                 htmlFor="date-format"
-                className="mb-2 block text-sm font-semibold"
+                className="w-24 shrink-0 text-sm font-semibold"
               >
                 Date format
               </label>
 
-              <div className="relative">
+              <div className="relative min-w-0 flex-1">
                 <select
                   id="date-format"
                   value={settings.format}
@@ -577,6 +596,7 @@ export function StampWorkspace() {
                   }
                   className="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2 pr-9 text-sm"
                 >
+                  <option value="slash">MM/DD/YYYY</option>
                   <option value="classic">MM.DD.YYYY</option>
                   <option value="iso">YYYY-MM-DD</option>
                   <option value="written">MON DD, YYYY</option>
@@ -673,7 +693,7 @@ export function StampWorkspace() {
                       aria-label={position.replaceAll("-", " ")}
                       aria-pressed={settings.position === position}
                       onClick={() => updateSetting("position", position)}
-                      className="grid h-7 w-8 place-items-center rounded border border-slate-200 bg-white text-slate-400 hover:border-primary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-white"
+                      className="grid h-7 w-8 place-items-center rounded border border-slate-200 bg-white text-slate-400 hover:border-primary aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
                     >
                       <span className="size-1.5 rounded-full bg-current" />
                     </button>
@@ -689,28 +709,9 @@ export function StampWorkspace() {
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend className="mb-2 text-sm font-semibold">
-                Text treatment
-              </legend>
-
-              <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
-                {treatments.map((treatment) => (
-                  <button
-                    key={treatment.value}
-                    type="button"
-                    aria-pressed={settings.treatment === treatment.value}
-                    onClick={() => updateSetting("treatment", treatment.value)}
-                    className="rounded-md px-1 py-2 text-xs font-medium text-slate-600 hover:bg-white/60 aria-pressed:bg-white aria-pressed:text-primary aria-pressed:shadow-sm"
-                  >
-                    {treatment.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
           </div>
           )}
-            <div className="space-y-3 border-t border-slate-100 p-5">
+            <div className="space-y-3 p-5">
               <Button
                 type="button"
                 size="lg"
@@ -723,8 +724,7 @@ export function StampWorkspace() {
                 ) : (
                   <ArrowDownToLine size={18} />
                 )}
-
-                {exporting ? "Preparing your photo…" : "Download stamped photo"}
+                {files.length > 1 ? `Download ${files.length} Photos` : "Download Stamped Photo"}
               </Button>
 
               <div className="grid auto-cols-fr grid-flow-col gap-3">
@@ -754,18 +754,8 @@ export function StampWorkspace() {
                 )}
               </div>
             </div>
-        </aside>
-      </div>
-
-      {displayedError && (
-        <div
-          role="alert"
-          className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-        >
-          <Info size={18} className="shrink-0" />
-          {displayedError}
         </div>
-      )}
+      </div>
 
       <div role="status" aria-live="polite">
         {notice && (
@@ -776,21 +766,6 @@ export function StampWorkspace() {
         )}
       </div>
 
-      <section className="mt-6 flex items-start gap-3 rounded-md border border-slate-200 bg-slate-100 p-4">
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-primary">
-          <ShieldCheck size={20} />
-        </span>
-
-        <div>
-          <h3 className="text-sm font-semibold">
-            Private processing. Original quality.
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            Images are processed in your browser and are never uploaded or
-            stored on a server.
-          </p>
-        </div>
-      </section>
-    </main>
+    </div>
   );
 }

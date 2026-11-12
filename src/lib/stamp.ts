@@ -1,4 +1,4 @@
-export type DateFormat = "classic" | "iso" | "written" | "datetime";
+export type DateFormat = "slash" | "classic" | "iso" | "written" | "datetime";
 export type Position =
   | "top-left"
   | "top-center"
@@ -14,7 +14,7 @@ export type StampSettings = {
   treatment: "shadow" | "background" | "none";
 };
 export const defaultSettings: StampSettings = {
-  format: "classic",
+  format: "slash",
   size: 4,
   color: "#ffffff",
   position: "bottom-right",
@@ -68,6 +68,7 @@ export function formatTimestamp(value: string, format: DateFormat): string {
   const date = `${match[1]}-${match[3]}-${match[4]}`;
   const time = match[5] ? `${match[5]}:${match[6]}` : null;
   const [year, month, day] = date.split("-");
+  if (format === "slash") return `${month}/${day}/${year}`;
   if (format === "iso") return date;
   if (format === "datetime")
     return `${month}.${day}.${year}${time ? `  ${time}` : ""}`;

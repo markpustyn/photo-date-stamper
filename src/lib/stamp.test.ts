@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatTimestamp, parseCaptureDate, validDate } from "./stamp";
+import { defaultSettings, formatTimestamp, parseCaptureDate, validDate } from "./stamp";
+test("default stamp uses month/day/year with slashes", () => {
+  assert.equal(formatTimestamp("2026-11-11", defaultSettings.format), "11/11/2026");
+  assert.equal(formatTimestamp("2024-07-21T17:35:08", "slash"), "07/21/2024");
+});
 test("EXIF capture date retains camera-local time", () => {
   assert.equal(parseCaptureDate("2024:07:21 17:35:08"), "2024-07-21T17:35:08");
   assert.equal(parseCaptureDate(undefined), null);

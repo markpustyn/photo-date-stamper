@@ -1,18 +1,19 @@
 import { CalendarDays, LockKeyhole } from "lucide-react";
+import Image from "next/image";
 import React from "react";
 
 function Header() {
   return (
-    <div className="bg-slate-50 font-sans text-foreground">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="bg-white font-sans text-foreground">
+      <header className=" bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-4 sm:px-8">
           <a
             href="/"
             aria-label="Daymark home"
             className="inline-flex items-center gap-2 text-xl font-bold tracking-tight"
           >
-            <span className="grid size-9 place-items-center rounded-md bg-primary text-white">
-              <CalendarDays size={21} />
+            <span className="grid size-9 place-items-center rounded-mdtext-white">
+              <Image src="/logo.png" alt="Logo" width={200} height={200} />
             </span>
             Date Stamper
           </a>
