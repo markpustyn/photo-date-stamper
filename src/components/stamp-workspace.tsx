@@ -19,11 +19,15 @@ import {
   Info,
   LoaderCircle,
   LockKeyhole,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
   Pencil,
   PencilIcon,
   Plus,
   RotateCcw,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   Empty,
@@ -319,13 +323,48 @@ export function StampWorkspace() {
   }
 
   return (
-    <div className="grid w-full min-h-0 min-w-0 flex-1 grid-cols-1 pb-10 xl:grid-cols-[22rem_minmax(0,1fr)_22rem] xl:grid-rows-[auto_minmax(0,1fr)_auto] xl:gap-x-8 xl:pb-0">
-      <aside
-          aria-label="Stamp settings"
-          className="order-3 mt-5 flex max-h-[calc(100dvh-2rem)] w-full min-h-0 min-w-0 max-w-5xl flex-col justify-self-center overflow-hidden border-r bg-white xl:order-none xl:col-start-1 xl:row-start-1 xl:row-span-3 xl:mt-0 xl:max-h-full xl:self-stretch xl:rounded-l-none xl:border-l-0"
+    <div data-settings-open={opened} className="relative grid w-full min-h-0 min-w-0 flex-1 grid-cols-1 pb-10 xl:grid-cols-[22rem_minmax(0,1fr)_22rem] xl:data-[settings-open=false]:grid-cols-[0_minmax(0,1fr)_0] xl:grid-rows-[auto_minmax(0,1fr)_auto] xl:gap-x-4 xl:pb-0">
+      {!opened && (
+        <button
+          id="open-stamp-settings"
+          type="button"
+          aria-controls="stamp-settings"
+          aria-expanded={false}
+          onClick={() => {
+            setOpened(true);
+            requestAnimationFrame(() => document.getElementById("close-stamp-settings")?.focus());
+          }}
+          className="absolute left-4 top-2 z-20 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary"
         >
+          <PanelLeftOpen aria-hidden="true" size={18} />
+          Settings
+        </button>
+      )}
+      <aside
+          id="stamp-settings"
+          aria-label="Stamp settings"
+          className={`${opened ? "flex" : "hidden"} order-3 mt-5 max-h-[calc(100dvh-2rem)] w-full min-h-0 min-w-0 max-w-5xl flex-col justify-self-center overflow-hidden border-r bg-white xl:order-0 xl:col-start-1 xl:row-start-1 xl:row-span-3 xl:mt-0 xl:max-h-full xl:self-stretch xl:rounded-l-none xl:border-l-0`}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3">
+            <h2 className="text-sm font-semibold">Edit</h2>
+            <button
+              id="close-stamp-settings"
+              type="button"
+              aria-label="Close settings panel"
+              title="Close settings panel"
+              onClick={() => {
+                setOpened(false);
+                requestAnimationFrame(() => document.getElementById("open-stamp-settings")?.focus({ preventScroll: true }));
+              }}
+              className="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <X aria-hidden="true" size={20} />
+            </button>
+          </div>
           {opened && (
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
+
+              
               {photo && !photo.captureDate && (
                 <p className="flex items-start gap-2 text-xs leading-5 text-amber-800">
                   <Info size={14} className="mt-0.5 shrink-0" />
@@ -334,7 +373,6 @@ export function StampWorkspace() {
                     : "No EXIF capture date found. Use a custom date for this photo."}
                 </p>
               )}
-              
             <fieldset>
               <legend className="mb-2 text-sm font-semibold">
                 Text treatment
@@ -497,7 +535,7 @@ export function StampWorkspace() {
                 <option value="city-state">City + State</option>
                 <option value="city-state-country">City + State + Country</option>
               </select>
-              <p className="mt-3 break-words text-xs leading-5 text-slate-600">
+              <p className="mt-3 wrap-break-word text-xs leading-5 text-slate-600">
                 {!photo ? "Select a photo to read its saved GPS coordinates."
                   : photo.coordinates ? `Saved coordinates: ${formatCoordinates(photo.coordinates)}`
                   : "No readable GPS coordinates found in this photo. Location will be omitted from the stamp."}
@@ -567,7 +605,7 @@ export function StampWorkspace() {
               </div>
             </div>
         </aside>
-    <section className="order-1 min-w-0 px-4 pb-6 pt-8 text-center sm:pt-10 xl:order-none xl:col-start-2 xl:row-start-1">
+    <section className="order-1 min-w-0 px-4 pb-6 pt-8 text-center sm:pt-10 xl:order-0 xl:col-start-2 xl:row-start-1">
       <p className="text-xs font-semibold tracking-widest text-primary">
         IMAGE TOOLS / DATE STAMP
       </p>
@@ -581,11 +619,12 @@ export function StampWorkspace() {
         browser, never uploaded, stored, or sent to our servers
       </p>
     </section>
-      <div className="order-2 grid min-h-0 min-w-0 content-start gap-4 px-4 sm:px-8 xl:order-none xl:col-start-2 xl:row-start-2 xl:overflow-y-auto xl:overscroll-contain xl:px-0 xl:pb-5">
+      <div className="order-2 grid min-h-0 min-w-0 content-start gap-4 px-4 sm:px-8 xl:order-0 xl:col-start-2 xl:row-start-2 xl:flex xl:flex-col xl:overflow-y-auto xl:overscroll-contain xl:px-0 xl:pb-5">
         {/* Photo picker and preview */}
         <section
           aria-label="Photo workspace"
-          className="w-full min-w-0 max-w-3xl justify-self-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+          data-loaded={Boolean(photo)}
+          className="flex w-full min-w-0 max-w-4xl flex-col justify-self-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:mx-auto xl:min-h-56 xl:max-h-[40dvh] xl:flex-1 xl:shrink-0 xl:data-[loaded=true]:max-h-[65dvh]"
         >
 
           <input
@@ -639,12 +678,12 @@ export function StampWorkspace() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className="
-                relative m-3 grid min-h-80 place-items-center overflow-hidden
-                rounded-md border-2 border-dashed border-slate-300 p-5
+                relative m-2 grid min-h-[clamp(11rem,28dvh,17rem)] place-items-center overflow-hidden
+                rounded-md border-2 border-dashed border-slate-300 p-3 sm:m-3 sm:p-5
                 data-[loaded=true]:border-solid data-[loaded=true]:bg-slate-100
                 data-[loaded=true]:min-h-0 data-[loaded=true]:p-2 data-[dragging=true]:border-primary
                 data-[dragging=true]:ring-2 data-[dragging=true]:ring-primary
-                sm:min-h-80
+                xl:min-h-40 xl:flex-1
               "
           >
             {photo ? (
@@ -656,7 +695,7 @@ export function StampWorkspace() {
                     ? `${photo.name} stamped ${formatTimestamp(timestamp, settings.format)}${settings.location === "coordinates" && photo.coordinates ? `, ${formatCoordinates(photo.coordinates)}` : ""}`
                     : `${photo.name} without a timestamp`
                 }
-                className="block h-auto max-h-[min(50dvh,28rem)] w-auto max-w-full object-contain"
+                className="block h-auto max-h-[min(65dvh,40rem)] w-auto max-w-full object-contain xl:absolute xl:inset-0 xl:h-full xl:max-h-full xl:w-full xl:p-2"
               />
             ) : (
               <>
@@ -723,7 +762,7 @@ export function StampWorkspace() {
             )}
           </div>
         </section>
-    <div className="relative pb-5" role="group" aria-label="Photo actions">
+    <div className="relative shrink-0 pb-5" role="group" aria-label="Photo actions">
       <Dock direction="middle" iconSize={44} iconMagnification={52} className="mt-0 h-16 max-w-full gap-2 rounded-xl bg-white px-2 shadow-sm">
         <DockIcon className="p-0! [&>div]:size-full">
           <button
