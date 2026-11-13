@@ -1,38 +1,77 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+
+const siteUrl = "https://datestamper.io";
+const title = "Free Photo Date Stamper — Add Dates to Photos Online";
+const description =
+  "Add date and location stamps to photos online for free. Customize the style and download full-resolution PNGs. Your photos stay on your device. No signup.";
 
 export const metadata: Metadata = {
-  title: "Free Photo Date Stamper",
-  description:
-    "Add a date and time stamp to mulitple photos in seconds. Free, no signup, and your images never leave your browser. Choose your font, color, position, and format, then download.",
+  metadataBase: new URL(siteUrl),
+  applicationName: "Date Stamper",
+  title: {
+    default: title,
+    template: "%s | Date Stamper",
+  },
+  description,
+  openGraph: {
+    type: "website",
+    siteName: "Date Stamper",
+    locale: "en_US",
+    title,
+    description,
+    images: [
+      {
+        url: "/images/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "Date Stamper photo timestamp tool",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: [
+      {
+        url: "/images/android-chrome-512x512.png",
+        alt: "Date Stamper photo timestamp tool",
+      },
+    ],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    shortcut: "/images/favicon.ico",
+    icon: [
+      { url: "/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      {
+        url: "/images/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+  manifest: "/images/site.webmanifest",
 };
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="font-sans">
-        <head>
-        <link rel="shortcut icon" href="/images/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/images/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/images/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/images/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/images/site.webmanifest" />
-      </head>
       <body>
         {children}
         <Analytics />
