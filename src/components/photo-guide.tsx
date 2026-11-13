@@ -34,7 +34,7 @@ const questions = [
   ],
   [
     "Can I download all my photos at once?",
-    "Downloads are currently one photo at a time. You can select several files, then use the Selected photo menu to work through them.",
+    "Yes. Select up to 25 photos and choose Download ZIP to save the stamped PNGs together. Stamp settings apply to every photo. Each uses its own saved date unless you enter a custom date, which applies to all photos. If a photo has no saved date, you’ll be asked to enter one before exporting.",
   ],
   [
     "Will this replace my original file?",
@@ -84,7 +84,7 @@ export function PhotoGuide() {
             ],
             [
               "Download a copy",
-              "Save the finished PNG, then select the next photo if you have more to do.",
+              "Save one photo as a PNG, or download all selected photos together in a ZIP file.",
             ],
           ].map(([title, description], index) => (
             <li
@@ -139,7 +139,7 @@ export function PhotoGuide() {
             ],
             [
               "Output",
-              "A PNG at the original pixel dimensions. Select multiple photos and save each separately.",
+              "PNGs at the original pixel dimensions. Multiple selected photos download together in a ZIP file.",
             ],
           ].map(([label, description]) => (
             <div

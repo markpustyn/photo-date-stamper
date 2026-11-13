@@ -40,6 +40,7 @@ import {
 
 import { DockDemo } from "@/components/dock";
 import { exportPhoto, loadPhoto, type LoadedPhoto } from "@/lib/images";
+import { createPhotoArchive } from "@/lib/photo-archive";
 import { formatCoordinates } from "@/lib/location";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +101,7 @@ export function StampWorkspace() {
 
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState("");
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
   const [renderError, setRenderError] = useState("");
@@ -110,7 +112,7 @@ export function StampWorkspace() {
   const photoRef = useRef<LoadedPhoto | null>(null);
   const requestRef = useRef(0);
   const dragDepth = useRef(0);
-
+  const maxImages = 25;
   const validManualDate = validDate(manualDate);
   const customTimestamp = validManualDate ? manualDate : null;
   const timestamp =
@@ -227,6 +229,13 @@ export function StampWorkspace() {
   function addFiles(selection: FileList | null) {
     const added = Array.from(selection ?? []);
     if (added.length === 0 || controlsDisabled) return;
+    const remaining = maxImages - files.length;
+    if (added.length > remaining) {
+      setError(remaining === 0
+        ? `You can add up to ${maxImages} images. Remove a photo before adding more.`
+        : `You can add up to ${maxImages} images. Choose ${remaining} or fewer additional photos.`);
+      return;
+    }
 
     setFiles([...files, ...added]);
     setActiveIndex(files.length);
@@ -294,23 +303,30 @@ export function StampWorkspace() {
     if (!photo || !timestamp || !canDownload) return;
 
     setExporting(true);
+    setExportProgress("Preparing…");
     setError("");
     setNotice("");
 
     try {
-      const blob = await exportPhoto(photo, timestamp, settings);
+      const multiple = files.length > 1;
+      const blob = multiple
+        ? await createPhotoArchive(files, settings, source === "manual" ? timestamp : null, (completed, total) => {
+            setExportProgress(completed === total ? "Creating ZIP…" : `Stamping ${completed + 1} of ${total}…`);
+          })
+        : await exportPhoto(photo, timestamp, settings);
       const url = URL.createObjectURL(blob);
       const filename = photo.name.replace(/\.[^.]+$/, "");
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${filename}-daymark.png`;
+      link.download = multiple ? "datestamper-photos.zip" : `${filename}-datestampIO.png`;
 
       document.body.appendChild(link);
       link.click();
       link.remove();
 
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      setNotice(multiple ? `ZIP download started with ${files.length} stamped photos.` : "Stamped photo download started.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -319,6 +335,7 @@ export function StampWorkspace() {
       );
     } finally {
       setExporting(false);
+      setExportProgress("");
     }
   }
 
@@ -749,7 +766,7 @@ export function StampWorkspace() {
                   </span>
 
                   <span className="text-xs text-slate-500">
-                    JPG, PNG or WebP · Up to 50 MB / 40 MP per photo
+                    Up to {maxImages} images · JPG, PNG or WebP · 50 MB / 40 MP per photo
                   </span>
                 </EmptyContent>
               </Empty>
@@ -815,7 +832,7 @@ export function StampWorkspace() {
                 ) : (
                   <ArrowDownToLine size={18} />
                 )}
-                {exporting ? "Preparing…" : "Download photo"}
+                {exporting ? exportProgress : files.length > 1 ? `Download ZIP (${files.length})` : "Download photo"}
               </Button>
       </Dock>
     </div>
