@@ -504,7 +504,7 @@ export function StampWorkspace() {
               </p>
               {settings.location !== "none" && settings.location !== "coordinates" && (
                 <p className="mt-2 text-xs leading-5 text-slate-600">
-                  Place names are looked up through our server using Google. Only the saved coordinates are sent; your photo stays on your device.
+                  Place names are looked up using Google. Only the saved coordinates are sent; your photo stays on your device.
                 </p>
               )}
             </fieldset>
