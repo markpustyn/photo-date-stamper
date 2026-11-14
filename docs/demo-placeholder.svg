@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Date Stamper demo placeholder</title>
+  <desc id="desc">Reserved space for a screenshot of the Date Stamper application.</desc>
+  <rect width="1200" height="675" rx="24" fill="#fff7ed" />
+  <rect x="24" y="24" width="1152" height="627" rx="16" fill="#ffffff" stroke="#fed7aa" stroke-width="2" stroke-dasharray="10 8" />
+  <g text-anchor="middle" font-family="Arial, sans-serif">
+    <text x="600" y="315" font-size="40" font-weight="700" fill="#c2410c">Date Stamper</text>
+    <text x="600" y="365" font-size="24" fill="#475569">Demo screenshot coming soon</text>
+  </g>
+</svg>
