@@ -636,7 +636,7 @@ export function StampWorkspace() {
       <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
         Image Date Stamper
       </h1>
-      <h3 className="text-lg font-semibold text-slate-700 mt-2">100% Private</h3>
+      <h2 className="text-lg font-semibold text-slate-700 mt-2">100% Private</h2>
       <p className="mx-auto mt-3 max-w-3xl text-center text-slate-600">
        All images are processed securely in your
         browser, never uploaded, stored, or sent to our servers

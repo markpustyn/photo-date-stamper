@@ -146,10 +146,10 @@ export function PhotoGuide() {
               key={label}
               className="grid gap-2 py-5 sm:grid-cols-[7rem_1fr] sm:gap-6"
             >
-              <dt className="text-sm font-semibold">{label}</dt>
-              <dd className="text-sm leading-7 text-slate-600">
+              <li className="text-sm font-semibold">{label}</li>
+              <li className="text-sm leading-7 text-slate-600">
                 {description}
-              </dd>
+              </li>
             </div>
           ))}
         </ul>
