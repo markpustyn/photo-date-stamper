@@ -127,6 +127,7 @@ export function StampWorkspace() {
     photo && timestamp && !controlsDisabled && !renderError,
   );
   const displayedError = error || renderError;
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setManualDate(localNow());
@@ -180,7 +181,10 @@ export function StampWorkspace() {
     // Match Tailwind's xl layout. Only reset when crossing the breakpoint,
     // so opening settings manually on a small screen still works.
     const mediaQuery = window.matchMedia("(min-width: 80rem)");
-    const syncSidebar = () => setOpened(mediaQuery.matches);
+    const syncSidebar = () => {
+      setOpened(mediaQuery.matches);
+      setIsMobile(!mediaQuery.matches);
+    };
     syncSidebar();
     mediaQuery.addEventListener("change", syncSidebar);
     return () => mediaQuery.removeEventListener("change", syncSidebar);
@@ -362,7 +366,7 @@ export function StampWorkspace() {
           aria-expanded={false}
           onClick={() => {
             setOpened(true);
-            requestAnimationFrame(() => document.getElementById("close-stamp-settings")?.focus());
+            requestAnimationFrame(() => document.getElementById("close-stamp-settings")?.focus({ preventScroll: !isMobile }));
           }}
           className="absolute left-4 top-2 z-20 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary"
         >
@@ -373,7 +377,7 @@ export function StampWorkspace() {
       <aside
           id="stamp-settings"
           aria-label="Stamp settings"
-          className={`${opened ? "flex" : "hidden"} order-3 mt-5 max-h-[calc(100dvh-2rem)] w-full min-h-0 min-w-0 max-w-5xl flex-col justify-self-center overflow-hidden border-r bg-white xl:order-0 xl:col-start-1 xl:row-start-1 xl:row-span-3 xl:mt-0 xl:max-h-full xl:self-stretch xl:rounded-l-none xl:border-l-0`}
+          className={`${opened ? "flex" : "hidden"} order-3 mt-5 w-full min-h-0 min-w-0 max-w-5xl flex-col justify-self-center border-r bg-white xl:order-0 xl:col-start-1 xl:row-start-1 xl:row-span-3 xl:mt-0 xl:max-h-full xl:overflow-hidden xl:self-stretch xl:rounded-l-none xl:border-l-0`}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3">
             <h2 className="text-sm font-semibold">Edit</h2>
@@ -384,7 +388,7 @@ export function StampWorkspace() {
               title="Close settings panel"
               onClick={() => {
                 setOpened(false);
-                requestAnimationFrame(() => document.getElementById("open-stamp-settings")?.focus({ preventScroll: true }));
+                requestAnimationFrame(() => document.getElementById("open-stamp-settings")?.focus({ preventScroll: false }));
               }}
               className="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary"
             >
@@ -392,7 +396,7 @@ export function StampWorkspace() {
             </button>
           </div>
           {opened && (
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
+            <div className="min-h-0 flex-1 space-y-5 p-5 xl:overflow-y-auto xl:overscroll-contain">
 
               
               {photo && !photo.captureDate && (
