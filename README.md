@@ -8,15 +8,21 @@ Add a visible date and optional location to photos in your browser. Date Stamper
 
 Built with Next.js App Router, React, TypeScript, and Tailwind CSS.
 
+
+## Examples
+
+| Date Stamped Images | Location Input |
+| --- | --- |
+| <img width="400" alt="Date stamped image 1" src="https://github.com/user-attachments/assets/869b07f6-61e9-476c-a770-2823c9aeb8e5" /> | <img width="400" alt="Location input" src="https://github.com/user-attachments/assets/9274ad23-e9d9-4503-9ac8-b8088f903ba8" /> |
+| <img width="400" alt="Date stamped image 2" src="https://github.com/user-attachments/assets/2a90547c-32bb-4acf-9935-e3508adf457c" /> | <img width="400" alt="Date stamped image 3" src="https://github.com/user-attachments/assets/c9858c36-fdb4-43a7-aebe-60ae61d5ff22" /> |
+
+
+
+
+
 ## Demo
 
-![Date Stamper demo screenshot placeholder](docs/demo-placeholder.svg)
-
-<!-- Add your screenshot at docs/demo.png, then change the image above to:
-![Date Stamper uploader, settings, and stamped photo preview](docs/demo.png)
--->
-
-*Demo screenshot coming soon.*
+<img width="2560" height="1440" alt="Screenshot 2026-11-14 140425" src="https://github.com/user-attachments/assets/ea96e3a0-ea31-4903-a7a4-ea3f2b00e8d9" />
 
 ## Features
 
