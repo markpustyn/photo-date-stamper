@@ -42,7 +42,7 @@ const questions = [
   ],
   [
     "Can I change the style of the stamp?",
-    "Yes. The settings let you change the date format, text size, color, and position. A shadow or background can help the text show up on a busy photo.",
+    "Yes. The settings let you change the date format, text size, color, and position. Add a shadow for contrast or a glow in your chosen text color.",
   ],
 ];
 
@@ -131,7 +131,7 @@ export function PhotoGuide() {
             ],
             [
               "Appearance",
-              "Adjust text size and color. Keep it plain, or add a shadow or background.",
+              "Adjust text size and color. Keep it plain, or add a shadow or glow.",
             ],
             [
               "Placement",

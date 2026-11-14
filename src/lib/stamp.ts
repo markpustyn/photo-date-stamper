@@ -13,7 +13,7 @@ export type StampSettings = {
   size: number;
   color: string;
   position: Position;
-  treatment: "shadow" | "background" | "none";
+  treatment: "shadow" | "glow" | "none";
   location: "none" | "coordinates" | "city" | "city-state" | "city-state-country";
 };
 export const defaultSettings: StampSettings = {
@@ -127,14 +127,11 @@ export async function drawStamp(
     ? margin
     : canvas.height - margin - blockHeight;
   ctx.textBaseline = "top";
-  if (settings.treatment === "background") {
-    ctx.fillStyle = "rgba(16, 25, 22, 0.65)";
-    ctx.fillRect(
-      x - fontSize * 0.3,
-      y - fontSize * 0.25,
-      textWidth + fontSize * 0.6,
-      blockHeight + fontSize * 0.55,
-    );
+  if (settings.treatment === "glow") {
+    ctx.shadowColor = settings.color;
+    ctx.shadowBlur = fontSize * 0.5;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
   if (settings.treatment === "shadow") {
     ctx.shadowColor = "rgba(0,0,0,.85)";

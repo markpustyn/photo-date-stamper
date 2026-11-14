@@ -69,14 +69,14 @@ const positions: Position[] = [
 const colors = [
   { name: "White", value: "#ffffff" },
   { name: "Warm yellow", value: "#f6d990" },
-  { name: "Peach", value: "#f29b68" },
+  { name: "Peach", value: "#e58a1f" },
   { name: "Forest green", value: "#172e28" },
 ];
 
 const treatments = [
   { label: "Plain", value: "none" },
   { label: "Shadow", value: "shadow" },
-  { label: "Background", value: "background" },
+  { label: "Glow", value: "glow" },
 ] as const;
 
 function localNow() {
@@ -514,7 +514,7 @@ export function StampWorkspace() {
                         border-black/15 text-[#253f36]
                         data-[color='#ffffff']:bg-white
                         data-[color='#f6d990']:bg-[#f6d990]
-                        data-[color='#f29b68']:bg-[#f29b68]
+                        data-[color='#e58a1f']:bg-[#e8802f]
                         data-[color='#172e28']:bg-[#172e28]
                         data-[color='#172e28']:text-white
                         aria-pressed:ring-2 aria-pressed:ring-primary
