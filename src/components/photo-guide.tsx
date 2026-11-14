@@ -119,7 +119,7 @@ export function PhotoGuide() {
             where the stamp is easy to read.
           </p>
         </div>
-        <ul className="divide-y divide-slate-200 border-y border-slate-200">
+        <div className="divide-y divide-slate-200 border-y border-slate-200">
           {[
             [
               "Date & time",
@@ -142,7 +142,7 @@ export function PhotoGuide() {
               "PNGs at the original pixel dimensions. Multiple selected photos download together in a ZIP file.",
             ],
           ].map(([label, description]) => (
-            <div
+            <ul
               key={label}
               className="grid gap-2 py-5 sm:grid-cols-[7rem_1fr] sm:gap-6"
             >
@@ -150,9 +150,9 @@ export function PhotoGuide() {
               <li className="text-sm leading-7 text-slate-600">
                 {description}
               </li>
-            </div>
+            </ul>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section
