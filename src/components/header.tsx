@@ -6,7 +6,7 @@ function Header() {
   return (
     <div className="bg-white font-sans text-foreground">
       <header className=" bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 py-4 sm:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 py-4 md:px-2 px-4">
           <a
             href="/"
             aria-label="Daymark home"

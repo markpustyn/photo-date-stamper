@@ -95,7 +95,7 @@ export function StampWorkspace() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [photo, setPhoto] = useState<LoadedPhoto | null>(null);
 
-  const [opened, setOpened] = useState(true);
+  const [opened, setOpened] = useState(false);
 
   const [settings, setSettings] = useState<StampSettings>(defaultSettings);
   const [source, setSource] = useState<"exif" | "manual">("exif");
@@ -176,6 +176,17 @@ export function StampWorkspace() {
     return () => { cancelled = true; };
   }, [photo, timestamp, settings]);
 
+  useEffect(() => {
+    // Match Tailwind's xl layout. Only reset when crossing the breakpoint,
+    // so opening settings manually on a small screen still works.
+    const mediaQuery = window.matchMedia("(min-width: 80rem)");
+    const syncSidebar = () => setOpened(mediaQuery.matches);
+    syncSidebar();
+    mediaQuery.addEventListener("change", syncSidebar);
+    return () => mediaQuery.removeEventListener("change", syncSidebar);
+  }, []);
+
+
   function updateSetting<K extends keyof StampSettings>(
     key: K,
     value: StampSettings[K],
@@ -248,10 +259,6 @@ export function StampWorkspace() {
     const input = event.currentTarget;
     addFiles(input.files);
     input.value = "";
-  }
-
-  function handlePhotoChange(event: ChangeEvent<HTMLSelectElement>) {
-    selectPhoto(Number(event.currentTarget.value));
   }
 
   function selectPhoto(index: number) {
@@ -359,8 +366,8 @@ export function StampWorkspace() {
           }}
           className="absolute left-4 top-2 z-20 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary"
         >
-          <PanelLeftOpen aria-hidden="true" size={18} />
-          Settings
+          <PanelLeftOpen aria-hidden="true" size={20} />
+          <p className="hidden sm:block" >Settings</p>
         </button>
       )}
       <aside
@@ -613,21 +620,10 @@ export function StampWorkspace() {
                 >
                   Reset
                 </Button>
-
-                {!opened && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setOpened(true)}
-                    className="w-full px-3"
-                  >
-                    More Settings
-                  </Button>
-                )}
               </div>
             </div>
         </aside>
+      
     <section className="order-1 min-w-0 px-4 pb-6 pt-8 text-center sm:pt-10 xl:order-0 xl:col-start-2 xl:row-start-1">
       <p className="text-xs font-semibold tracking-widest text-primary">
         IMAGE TOOLS / DATE STAMP
@@ -647,7 +643,7 @@ export function StampWorkspace() {
         <section
           aria-label="Photo workspace"
           data-loaded={Boolean(photo)}
-          className="flex w-full min-w-0 max-w-4xl flex-col justify-self-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm xl:mx-auto xl:min-h-56 xl:max-h-[40dvh] xl:flex-1 xl:shrink-0 xl:data-[loaded=true]:max-h-[65dvh]"
+          className="mx-auto flex w-full min-w-0 max-w-[min(56rem,calc(100dvw-2rem))] flex-col justify-self-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:max-w-[min(56rem,calc(100dvw-4rem))] xl:min-h-56 xl:max-h-[40dvh] xl:max-w-4xl xl:flex-1 xl:shrink-0 xl:data-[loaded=true]:max-h-[65dvh]"
         >
 
           <input
@@ -670,7 +666,7 @@ export function StampWorkspace() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className="
-                relative m-2 grid min-h-[clamp(11rem,28dvh,17rem)] place-items-center overflow-hidden
+                relative m-2 grid min-w-0 grid-cols-[minmax(0,1fr)] min-h-[clamp(11rem,28dvh,17rem)] place-items-center overflow-hidden
                 rounded-md border-2 border-dashed border-slate-300 p-3 sm:m-3 sm:p-5
                 data-[loaded=true]:border-solid data-[loaded=true]:bg-slate-100
                 data-[loaded=true]:min-h-0 data-[loaded=true]:p-2 data-[dragging=true]:border-primary
@@ -687,7 +683,7 @@ export function StampWorkspace() {
                     ? `${photo.name} stamped ${formatTimestamp(timestamp, settings.format)}${settings.location === "coordinates" && photo.coordinates ? `, ${formatCoordinates(photo.coordinates)}` : ""}`
                     : `${photo.name} without a timestamp`
                 }
-                className="block h-auto max-h-[min(65dvh,40rem)] w-auto max-w-full object-contain xl:absolute xl:inset-0 xl:h-full xl:max-h-full xl:w-full xl:p-2"
+                className="block h-auto min-w-0 max-h-[min(65dvh,40rem)] w-full max-w-full object-contain xl:absolute xl:inset-0 xl:h-full xl:max-h-full xl:w-full xl:p-2"
               />
             ) : (
               <>
@@ -698,9 +694,9 @@ export function StampWorkspace() {
                 onClick={() => inputRef.current?.click()}
                 className="absolute inset-0 z-10 cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-wait disabled:hover:bg-transparent"
               />
-              <Empty className="px-0"
+              <Empty className="min-w-0 px-0"
               >
-                <EmptyHeader>
+                <EmptyHeader className="w-full min-w-0">
                   <EmptyMedia variant="icon" className="size-14 text-primary">
                     <ImagePlus
                       className="size-7"
@@ -754,8 +750,8 @@ export function StampWorkspace() {
             )}
           </div>
         </section>
-    <div className="relative shrink-0 pb-5" role="group" aria-label="Photo actions">
-      <Dock direction="middle" iconSize={44} iconMagnification={52} className="mt-0 h-16 max-w-full gap-2 rounded-xl bg-white px-2 shadow-sm">
+    <div className="relative w-full min-w-0 shrink-0 pb-5" role="group" aria-label="Photo actions">
+      <Dock direction="middle" iconSize={44} iconMagnification={52} className="mt-0 grid h-auto min-h-16 w-full min-w-0 max-w-full grid-cols-[44px_44px_1px_44px_minmax(0,1fr)_44px] justify-items-center gap-1 rounded-xl bg-white px-2 shadow-sm max-sm:[&>div]:size-11! sm:flex sm:w-max sm:flex-wrap sm:gap-2">
         <DockIcon className="p-0! [&>div]:size-full">
           <button
             type="button"
@@ -779,7 +775,7 @@ export function StampWorkspace() {
             <Trash2 aria-hidden="true" className="size-5" />
           </button>
         </DockIcon>
-        <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-slate-200" />
+        <span aria-hidden="true" className="h-7 w-px shrink-0 self-center bg-slate-200 sm:mx-1" />
         <DockIcon className="p-0! [&>div]:size-full">
           <button
               type="button"
@@ -796,7 +792,7 @@ export function StampWorkspace() {
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          className="min-w-14 shrink-0 text-center text-xs font-medium tabular-nums text-slate-600"
+          className="min-w-0 shrink-0 whitespace-nowrap text-center text-xs font-medium tabular-nums text-slate-600 sm:min-w-14"
         >
           {files.length > 0 ? `${activeIndex + 1} of ${files.length}` : "0 of 0"}
         </span>
@@ -812,13 +808,13 @@ export function StampWorkspace() {
             <ChevronRight aria-hidden="true" className="size-5" />
           </button>
         </DockIcon>
-        <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-slate-200" />
+        <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 bg-slate-200 sm:block" />
               <Button
                 type="button"
                 size="lg"
                 disabled={!canDownload}
                 onClick={() => void downloadPhoto()}
-                className="h-11 justify-center gap-2 rounded-lg px-4 text-white"
+                className="col-span-full mt-1 h-11 w-full min-w-0 justify-center gap-2 rounded-lg px-3 text-white sm:mt-0 sm:w-auto sm:px-4"
               >
                 {exporting ? (
                   <LoaderCircle size={18} className="motion-safe:animate-spin" />
