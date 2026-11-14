@@ -14,6 +14,8 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CirclePlus,
   ImagePlus,
   Info,
@@ -249,7 +251,11 @@ export function StampWorkspace() {
   }
 
   function handlePhotoChange(event: ChangeEvent<HTMLSelectElement>) {
-    const index = Number(event.currentTarget.value);
+    selectPhoto(Number(event.currentTarget.value));
+  }
+
+  function selectPhoto(index: number) {
+    if (controlsDisabled || index === activeIndex) return;
     const file = files[index];
     if (!file) return;
 
@@ -655,37 +661,6 @@ export function StampWorkspace() {
             disabled={controlsDisabled}
             onChange={handleFileChange}
           />
-
-            {files.length > 0 && (
-              <div className="px-4 pt-4 pb-2">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <label
-                    htmlFor="selected-photo"
-                    className="block text-sm font-semibold"
-                  >
-                    Selected photo
-                  </label>
-
-                  <span className="px-2 py-1 font-mono text-xs text-slate-600">
-                    {activeIndex + 1} / {files.length}
-                  </span>
-                </div>
-
-                <select
-                  id="selected-photo"
-                  value={activeIndex}
-                  disabled={controlsDisabled}
-                  onChange={handlePhotoChange}
-                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
-                >
-                  {files.map((file, index) => (
-                    <option key={index} value={index}>
-                      {index + 1} of {files.length} · {file.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           <div
             data-dragging={dragging}
             data-loaded={Boolean(photo)}
@@ -794,21 +769,6 @@ export function StampWorkspace() {
         </DockIcon>
         <DockIcon className="p-0! [&>div]:size-full">
           <button
-            type="button"
-            title="Edit date and time"
-            aria-label="Edit date and time"
-            disabled={controlsDisabled}
-            onClick={() => {
-              setOpened(true);
-              requestAnimationFrame(() => document.getElementById("custom-date")?.focus());
-            }}
-            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
-          >
-            <Calendar aria-hidden="true" className="size-5" />
-          </button>
-        </DockIcon>
-        <DockIcon className="p-0! [&>div]:size-full">
-          <button
               type="button"
               title="Remove current image"
               aria-label="Remove current image"
@@ -820,12 +780,45 @@ export function StampWorkspace() {
           </button>
         </DockIcon>
         <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-slate-200" />
+        <DockIcon className="p-0! [&>div]:size-full">
+          <button
+              type="button"
+              title="Previous Image"
+              aria-label="Previous Image"
+              disabled={controlsDisabled || activeIndex <= 0 || files.length === 0}
+              onClick={() => selectPhoto(activeIndex - 1)}
+            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+          >
+            <ChevronLeft aria-hidden="true" className="size-5" />
+          </button>
+        </DockIcon>
+        <span
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="min-w-14 shrink-0 text-center text-xs font-medium tabular-nums text-slate-600"
+        >
+          {files.length > 0 ? `${activeIndex + 1} of ${files.length}` : "0 of 0"}
+        </span>
+        <DockIcon className="p-0! [&>div]:size-full">
+          <button
+              type="button"
+              title="Next Image"
+              aria-label="Next Image"
+              disabled={controlsDisabled || activeIndex >= files.length - 1}
+              onClick={() => selectPhoto(activeIndex + 1)}
+            className="grid size-full place-items-center rounded-lg text-slate-600 hover:bg-accent/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40"
+          >
+            <ChevronRight aria-hidden="true" className="size-5" />
+          </button>
+        </DockIcon>
+        <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-slate-200" />
               <Button
                 type="button"
                 size="lg"
                 disabled={!canDownload}
                 onClick={() => void downloadPhoto()}
-                className="h-11 justify-center gap-2 rounded-lg px-4"
+                className="h-11 justify-center gap-2 rounded-lg px-4 text-white"
               >
                 {exporting ? (
                   <LoaderCircle size={18} className="motion-safe:animate-spin" />
