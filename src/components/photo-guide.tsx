@@ -48,7 +48,7 @@ const questions = [
 
 export function PhotoGuide() {
   return (
-    <div className="mt-12 sm:mt-16">
+    <div className="mt-12 w-full sm:mt-16">
       <section
         aria-labelledby="privacy-title"
         className="border-l-2 border-accent py-1 pl-5 sm:pl-6"
@@ -92,7 +92,7 @@ export function PhotoGuide() {
               className="rounded border border-slate-200 bg-white p-5 sm:p-6"
             >
               <h3 className="text-base font-semibold">
-                <span className="mr-2 text-[#a34b00]">{index + 1}.</span>
+                <span className="mr-2 text-primary">{index + 1}.</span>
                 {title}
               </h3>
               <p className="mt-4 text-sm leading-7 text-slate-600">
@@ -157,7 +157,7 @@ export function PhotoGuide() {
 
       <section
         aria-labelledby="use-cases-title"
-        className="mt-16 border-y border-accent/30 bg-accent/5 px-5 py-8 sm:mt-20 sm:px-8 sm:py-10"
+        className="mt-16 w-full rounded-lg border border-accent/30 bg-accent/5 p-5 sm:mt-20 sm:p-8 lg:p-10"
       >
         <div className="max-w-2xl">
           <h2
@@ -171,14 +171,14 @@ export function PhotoGuide() {
             report, or a printed album. A visible date does.
           </p>
         </div>
-        <div className="mt-9 grid gap-5 md:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 items-stretch gap-5 md:grid-cols-2">
           {useCases.map(([title, description]) => (
             <article
               key={title}
-              className="rounded-lg border border-accent/30 bg-white p-6 sm:p-7"
+              className="min-w-0 rounded-lg border border-accent/30 bg-white p-5 sm:p-6"
             >
               <h3 className="text-base font-semibold">{title}</h3>
-              <p className="mt-3 max-w-lg text-sm leading-7 text-slate-700">
+              <p className="mt-3 text-sm leading-7 text-slate-700">
                 {description}
               </p>
             </article>

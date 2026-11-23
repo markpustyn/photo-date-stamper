@@ -1,6 +1,6 @@
 import { LockKeyhole } from "lucide-react";
 import Image from "next/image";
-
+import Link from "next/link";
 
 function Header() {
   return (
@@ -8,12 +8,12 @@ function Header() {
       <header className=" bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 py-4 md:px-2 px-4">
           <a
-            href="/"
-            aria-label="Daymark home"
+            href="/home"
+            aria-label="Date Stamper home"
             className="inline-flex items-center gap-2 text-xl font-bold tracking-tight"
           >
-            <span className="grid size-9 place-items-center rounded-mdtext-white">
-              <Image src="/logo.png" alt="Logo" width={200} height={200} />
+            <span className="grid size-9 place-items-center rounded-md">
+              <Image src="/logo-sage.svg" alt="" width={36} height={36} />
             </span>
             Date Stamper
           </a>
@@ -22,10 +22,14 @@ function Header() {
             Photo date stamping
           </span>
 
-          <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-primary">
-            <LockKeyhole size={14} />
-            100% Secure
-          </span>
+          <nav aria-label="Main navigation" className="ml-auto">
+            <Link
+              href="/home"
+              className="inline-flex rounded-md px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Home
+            </Link>
+          </nav>
         </div>
       </header>
     </div>

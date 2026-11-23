@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 const siteUrl = "https://datestamper.io";
 const title = "Free Photo Date Stamper — Add Dates to Photos Online";
 const description =
-  "Add date and location stamps to photos online for free. Customize the style and download full-resolution PNGs. Your photos stay on your device. No signup.";
+  "Add date and location stamps to photos online for free. Customize the style and download full-resolution PNGs. Your photos stay on your device.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

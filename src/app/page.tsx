@@ -19,7 +19,7 @@ export default function Page() {
           <StampWorkspace />
         </main>
       </div>
-      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-8">
         <PhotoGuide />
       </div>
       <Footer />
